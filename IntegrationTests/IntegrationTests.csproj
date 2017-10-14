@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OauthService.DataAccess\OauthService.DataAccess.csproj" />
-    <ProjectReference Include="..\OauthService.TokenProviders\OauthService.Token.csproj" />
   </ItemGroup>
 
 </Project>
