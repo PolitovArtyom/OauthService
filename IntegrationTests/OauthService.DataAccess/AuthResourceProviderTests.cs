@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OauthService.DataAccess;
@@ -60,7 +60,7 @@ namespace IntegrationTests.OauthService.DataAccess
             var authResource = new AuthResource
             {
                 Name = "create new client test",
-                ProviderType = AuthProviderType.None
+                AuthResourceType = AuthResourceType.None
             };
 
             var id = provider.AddAsync(authResource).Result;
@@ -77,7 +77,7 @@ namespace IntegrationTests.OauthService.DataAccess
             var authResource = new AuthResource
             {
                 Name = "update client test",
-                ProviderType = AuthProviderType.None
+                AuthResourceType = AuthResourceType.None
             };
 
             var id = provider.AddAsync(authResource).Result;
@@ -101,7 +101,7 @@ namespace IntegrationTests.OauthService.DataAccess
             var authResource = new AuthResource
             {
                 Name = "update client test",
-                ProviderType = AuthProviderType.None
+                AuthResourceType = AuthResourceType.None
             };
 
             var id = provider.AddAsync(authResource).Result;

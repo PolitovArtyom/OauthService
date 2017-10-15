@@ -3,12 +3,12 @@ using System.ComponentModel;
 
 namespace OauthService.Model
 {
-    public enum AuthProviderType
+    public enum AuthResourceType
     {
         [DisplayName("None")] 
         None = 0,
 
-        [DisplayName("TestProivder")]
-        TestProivder = 1,
+        [DisplayName("Test")]
+        Test = 1,
     }
 }

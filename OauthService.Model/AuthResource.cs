@@ -6,7 +6,7 @@
 
         public string Name { get; set; }
 
-        public AuthProviderType ProviderType { get; set; } = AuthProviderType.None;
+        public AuthResourceType AuthResourceType { get; set; } = AuthResourceType.None;
 
         public string Settings { get; set; }
     }
