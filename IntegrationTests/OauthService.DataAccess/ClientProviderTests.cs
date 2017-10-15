@@ -1,25 +1,31 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using System.Linq;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OauthService.DataAccess;
 using OauthService.Model;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
 
 namespace UnitTests.OauthService.DataAccess
 {
     [TestClass]
     public class ClientProviderTests
     {
-        private static string _testConnectionString = @"Data Source=C:\Temp\IdentityServer.sqlite";
+        private static readonly string _testConnectionString = @"Data Source=C:\Temp\IdentityServer.sqlite";
 
         [TestMethod]
         public void Ctor_checks_arguments()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => { var provider = new ClientProvider(" "); });
-            Assert.ThrowsException<ArgumentNullException>(() => { var provider = new ClientProvider(""); });
-            Assert.ThrowsException<ArgumentNullException>(() => { var provider = new ClientProvider(null); });
+            Assert.ThrowsException<ArgumentNullException>(() =>
+            {
+                var provider = new ClientProvider(" ");
+            });
+            Assert.ThrowsException<ArgumentNullException>(() =>
+            {
+                var provider = new ClientProvider("");
+            });
+            Assert.ThrowsException<ArgumentNullException>(() =>
+            {
+                var provider = new ClientProvider(null);
+            });
         }
 
         [TestMethod]
@@ -40,7 +46,7 @@ namespace UnitTests.OauthService.DataAccess
             var clients = provider.GetClientsAsync().Result.ToList();
 
             var clientId = clients.FirstOrDefault().Id;
-            var client = provider.GetClientAsync(clientId);
+            var client = provider.GetClientAsync(clientId).Result;
 
             Assert.IsNotNull(client);
         }
@@ -51,30 +57,82 @@ namespace UnitTests.OauthService.DataAccess
             var provider = new ClientProvider(_testConnectionString);
             var clients = provider.GetClientsAsync().Result.ToList();
 
-            var newClient = new Client()
+            var newClient = new Client
             {
                 Name = "dublicate test",
                 Identifier = clients.First().Identifier
             };
 
-            Assert.ThrowsException<AggregateException>(() => { var t = provider.AddClientAsync(newClient).Result; });
+            Assert.ThrowsException<AggregateException>(() =>
+            {
+                var t = provider.AddClientAsync(newClient).Result;
+            });
         }
 
         [TestMethod]
         public void Can_add_new_client()
         {
             var provider = new ClientProvider(_testConnectionString);
-            
-            var newClient = new Client()
+
+            var newClient = new Client
             {
                 Name = "create new client test",
-                Identifier = Guid.NewGuid().ToString("R")
+                Identifier = Guid.NewGuid().ToString(),
+                Secret = "Secret"
             };
 
             var newClientId = provider.AddClientAsync(newClient).Result;
 
-            var result = provider.GetClientAsync(newClientId);
+            var result = provider.GetClientAsync(newClientId).Result;
             Assert.IsNotNull(result);
+        }
+
+        [TestMethod]
+        public void Can_update_client()
+        {
+            var provider = new ClientProvider(_testConnectionString);
+
+            var newClient = new Client
+            {
+                Name = "update client test",
+                Identifier = Guid.NewGuid().ToString(),
+                Secret = "Secret"
+            };
+
+            var newClientId = provider.AddClientAsync(newClient).Result;
+            var client = provider.GetClientAsync(newClientId).Result;
+
+            var clientNewIdentifier = Guid.NewGuid().ToString();
+            client.Identifier = clientNewIdentifier;
+            provider.UpdateClientAsync(client).Wait();
+
+            var result = provider.GetClientAsync(client.Id).Result;
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(client.Identifier, clientNewIdentifier);
+        }
+
+        [TestMethod]
+        public void Can_delete_client()
+        {
+            var provider = new ClientProvider(_testConnectionString);
+
+            var newClient = new Client
+            {
+                Name = "delete client test",
+                Identifier = Guid.NewGuid().ToString(),
+                Secret = "Secret"
+            };
+
+            var newClientId = provider.AddClientAsync(newClient).Result;
+
+            var client = provider.GetClientAsync(newClientId).Result;
+            Assert.IsNotNull(client);
+
+            provider.DeleteClientAsync(client.Id).Wait();
+            var result = provider.GetClientAsync(newClientId).Result;
+
+            Assert.IsNull(result);
         }
     }
 }
