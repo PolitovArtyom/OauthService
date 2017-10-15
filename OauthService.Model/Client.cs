@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace OauthService.Model
+﻿namespace OauthService.Model
 {
-    public class Client
+    public class Client : IDbObject
     {
         public long Id { get; set; }
 

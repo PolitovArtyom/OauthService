@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OauthService.DataAccess;
 using OauthService.Model;
 
-namespace UnitTests.OauthService.DataAccess
+namespace IntegrationTests.OauthService.DataAccess
 {
     [TestClass]
     public class ClientProviderTests
@@ -32,7 +32,7 @@ namespace UnitTests.OauthService.DataAccess
         public void Can_get_all_clients()
         {
             var provider = new ClientProvider(_testConnectionString);
-            var clients = provider.GetClientsAsync().Result.ToList();
+            var clients = provider.GetAllAsync().Result.ToList();
 
             Assert.IsNotNull(clients);
             Assert.IsTrue(clients.Any());
@@ -43,10 +43,10 @@ namespace UnitTests.OauthService.DataAccess
         public void Can_get_client_byId()
         {
             var provider = new ClientProvider(_testConnectionString);
-            var clients = provider.GetClientsAsync().Result.ToList();
+            var clients = provider.GetAllAsync().Result.ToList();
 
             var clientId = clients.FirstOrDefault().Id;
-            var client = provider.GetClientAsync(clientId).Result;
+            var client = provider.GetAsync(clientId).Result;
 
             Assert.IsNotNull(client);
         }
@@ -55,7 +55,7 @@ namespace UnitTests.OauthService.DataAccess
         public void Cant_add_with_dublicated_identifier()
         {
             var provider = new ClientProvider(_testConnectionString);
-            var clients = provider.GetClientsAsync().Result.ToList();
+            var clients = provider.GetAllAsync().Result.ToList();
 
             var newClient = new Client
             {
@@ -65,7 +65,7 @@ namespace UnitTests.OauthService.DataAccess
 
             Assert.ThrowsException<AggregateException>(() =>
             {
-                var t = provider.AddClientAsync(newClient).Result;
+                var t = provider.AddAsync(newClient).Result;
             });
         }
 
@@ -81,9 +81,9 @@ namespace UnitTests.OauthService.DataAccess
                 Secret = "Secret"
             };
 
-            var newClientId = provider.AddClientAsync(newClient).Result;
+            var newClientId = provider.AddAsync(newClient).Result;
 
-            var result = provider.GetClientAsync(newClientId).Result;
+            var result = provider.GetAsync(newClientId).Result;
             Assert.IsNotNull(result);
         }
 
@@ -99,14 +99,14 @@ namespace UnitTests.OauthService.DataAccess
                 Secret = "Secret"
             };
 
-            var newClientId = provider.AddClientAsync(newClient).Result;
-            var client = provider.GetClientAsync(newClientId).Result;
+            var newClientId = provider.AddAsync(newClient).Result;
+            var client = provider.GetAsync(newClientId).Result;
 
             var clientNewIdentifier = Guid.NewGuid().ToString();
             client.Identifier = clientNewIdentifier;
-            provider.UpdateClientAsync(client).Wait();
+            provider.UpdateAsync(client).Wait();
 
-            var result = provider.GetClientAsync(client.Id).Result;
+            var result = provider.GetAsync(client.Id).Result;
 
             Assert.IsNotNull(result);
             Assert.AreEqual(client.Identifier, clientNewIdentifier);
@@ -124,13 +124,13 @@ namespace UnitTests.OauthService.DataAccess
                 Secret = "Secret"
             };
 
-            var newClientId = provider.AddClientAsync(newClient).Result;
+            var newClientId = provider.AddAsync(newClient).Result;
 
-            var client = provider.GetClientAsync(newClientId).Result;
+            var client = provider.GetAsync(newClientId).Result;
             Assert.IsNotNull(client);
 
-            provider.DeleteClientAsync(client.Id).Wait();
-            var result = provider.GetClientAsync(newClientId).Result;
+            provider.DeleteAsync(client.Id).Wait();
+            var result = provider.GetAsync(newClientId).Result;
 
             Assert.IsNull(result);
         }
