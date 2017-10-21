@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace OauthService.Model
 {
@@ -10,11 +8,7 @@ namespace OauthService.Model
 
         public string Name { get; set; }
 
-        public int ClientId { get; set; }
-
         public Client Client { get; set; }
-
-        public AuthResource AuthResource { get; set; }
 
         public IEnumerable<ResourceRole> ResourceRoles { get; set; }
     }

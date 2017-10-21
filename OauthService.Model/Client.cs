@@ -15,5 +15,7 @@
         public string Description { get; set; }
 
         public string LogoutPage { get; set; }
+
+        public AuthResource AuthResource { get; set; }
     }
 }

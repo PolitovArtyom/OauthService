@@ -1,42 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Threading.Tasks;
+
 using Dapper;
-using Dapper.Contrib.Extensions;
-using Microsoft.Data.Sqlite;
-using OauthService.DataAccess.Exceptions;
 using OauthService.Model;
 
 namespace OauthService.DataAccess
 {
     public class ObjectProvider<T> where T : class, IDbObject, new()
     {
-        protected readonly string ConnectionString;
+        private readonly ISqlQueryBuilder<T> _queryBuilder;
+        private readonly ISqlConnectionProvider _connectionProvider;
 
-        public ObjectProvider(string tableName, string connectionString)
+        public ObjectProvider(ISqlQueryBuilder<T> queryBuilder, ISqlConnectionProvider connectionProvider)
         {
-            if (string.IsNullOrWhiteSpace(connectionString))
-            {
-                throw new ArgumentNullException(nameof(connectionString));
-            }
-
-            ConnectionString = connectionString;
+            _queryBuilder = queryBuilder ?? throw new ArgumentNullException(nameof(queryBuilder));
+            _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
         }
 
         public async Task<T> GetAsync(long id)
         {
-            using (var connection = new SqliteConnection(ConnectionString))
+            using (var connection = _connectionProvider.GetConnection())
             {
-                return await connection.GetAsync<T>(id);
+                return await connection.QuerySingleOrDefaultAsync<T>(_queryBuilder.Select(id));
             }
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
         {
-            using (var connection = new SqliteConnection(ConnectionString))
+            using (var connection = _connectionProvider.GetConnection())
             {
-                return await connection.GetAllAsync<T>();
+                return await connection.QueryAsync<T>(_queryBuilder.SelectAll());
             }
         }
 
@@ -44,33 +38,26 @@ namespace OauthService.DataAccess
         {
             await ValidateModel(obj);
 
-            using (var connection = new SqliteConnection(ConnectionString))
+            using (var connection = _connectionProvider.GetConnection())
             {
-                await connection.InsertAsync(obj);
-                return obj.Id;
+                return await connection.QuerySingleAsync<long>(_queryBuilder.Insert(obj));
             }
         }
 
-        public async Task UpdateAsync(T client)
+        public async Task UpdateAsync(T obj)
         {
-            var toUpdate = await GetAsync(client.Id);
-            if (toUpdate == null)
+            await ValidateModel(obj);
+            using (var connection = _connectionProvider.GetConnection())
             {
-                throw new ObjectNotFoundException($"Client with id={client.Id} not found");
-            }
-
-            await ValidateModel(client);
-            using (var connection = new SqliteConnection(ConnectionString))
-            {
-                await connection.UpdateAsync(client);
+                 await connection.ExecuteAsync(_queryBuilder.Update(obj));
             }
         }
 
         public async Task DeleteAsync(long id)
         {
-            using (var connection = new SqliteConnection(ConnectionString))
+            using (var connection = _connectionProvider.GetConnection())
             {
-                await connection.DeleteAsync<T>(new T() { Id = id });
+                await connection.ExecuteAsync(_queryBuilder.Delete(id));
             }
         }
 

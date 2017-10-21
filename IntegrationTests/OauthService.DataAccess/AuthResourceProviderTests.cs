@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OauthService.DataAccess;
+using OauthService.DataAccess.SqLite;
+using OauthService.DataAccess.SqLite.Queries;
 using OauthService.Model;
 
 namespace IntegrationTests.OauthService.DataAccess
@@ -16,22 +18,14 @@ namespace IntegrationTests.OauthService.DataAccess
         {
             Assert.ThrowsException<ArgumentNullException>(() =>
             {
-                var provider = new AuthResourceProvider(" ");
-            });
-            Assert.ThrowsException<ArgumentNullException>(() =>
-            {
-                var provider = new AuthResourceProvider("");
-            });
-            Assert.ThrowsException<ArgumentNullException>(() =>
-            {
-                var provider = new AuthResourceProvider(null);
+                var provider = new AuthResourceProvider(null, null);
             });
         }
 
         [TestMethod]
         public void Can_get_all_authResource()
         {
-            var provider = new AuthResourceProvider(_testConnectionString);
+            var provider = GetProivder();
             var authResources = provider.GetAllAsync().Result.ToList();
 
             Assert.IsNotNull(authResources);
@@ -42,7 +36,7 @@ namespace IntegrationTests.OauthService.DataAccess
         [TestMethod]
         public void Can_get_authResource_byId()
         {
-            var provider = new AuthResourceProvider(_testConnectionString);
+            var provider = GetProivder();
             var authResources = provider.GetAllAsync().Result.ToList();
 
             var id = authResources.FirstOrDefault().Id;
@@ -55,7 +49,7 @@ namespace IntegrationTests.OauthService.DataAccess
         [TestMethod]
         public void Can_add_new_authResource()
         {
-            var provider = new AuthResourceProvider(_testConnectionString);
+            var provider = GetProivder();
 
             var authResource = new AuthResource
             {
@@ -72,7 +66,7 @@ namespace IntegrationTests.OauthService.DataAccess
         [TestMethod]
         public void Can_update_authResource()
         {
-            var provider = new AuthResourceProvider(_testConnectionString);
+            var provider = GetProivder();
 
             var authResource = new AuthResource
             {
@@ -96,7 +90,7 @@ namespace IntegrationTests.OauthService.DataAccess
         [TestMethod]
         public void Can_delete_authResource()
         {
-            var provider = new AuthResourceProvider(_testConnectionString);
+            var provider = GetProivder();
 
             var authResource = new AuthResource
             {
@@ -113,6 +107,14 @@ namespace IntegrationTests.OauthService.DataAccess
             var result = provider.GetAsync(id).Result;
 
             Assert.IsNull(result);
+        }
+
+        private AuthResourceProvider GetProivder()
+        {
+            return new AuthResourceProvider(
+            new DefaultSqliteQueryBuilder<AuthResource>(),
+            new SqLiteConnectionProvider(_testConnectionString)
+            );
         }
     }
 }
